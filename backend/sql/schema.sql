@@ -77,3 +77,35 @@ CREATE TABLE IF NOT EXISTS user_blocks (
 
 -- Add message encryption metadata and refresh-token sessions in a later
 -- migration before enabling production messaging and long-lived sessions.
+
+
+-- Official Meta WhatsApp Cloud API inbox data.
+CREATE TABLE IF NOT EXISTS wa_contacts (
+  wa_id VARCHAR(32) PRIMARY KEY,
+  profile_name VARCHAR(120),
+  first_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_message_at TIMESTAMPTZ
+);
+CREATE TABLE IF NOT EXISTS wa_conversations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  wa_id VARCHAR(32) NOT NULL UNIQUE REFERENCES wa_contacts(wa_id) ON DELETE CASCADE,
+  last_message_preview TEXT,
+  last_message_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS wa_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id UUID NOT NULL REFERENCES wa_conversations(id) ON DELETE CASCADE,
+  meta_message_id VARCHAR(160) UNIQUE,
+  direction VARCHAR(8) NOT NULL CHECK (direction IN ('inbound','outbound')),
+  message_type VARCHAR(30) NOT NULL DEFAULT 'text',
+  body TEXT,
+  media_id VARCHAR(160),
+  status VARCHAR(24) NOT NULL DEFAULT 'received',
+  raw_payload JSONB,
+  sent_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_wa_messages_conversation_created
+  ON wa_messages (conversation_id, created_at DESC);
