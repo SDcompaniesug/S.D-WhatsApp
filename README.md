@@ -47,3 +47,16 @@ Open the `android/` directory in Android Studio or a compatible Gradle Android I
 ## Security and scope
 
 This is an independent messaging service. It does not connect to or import WhatsApp accounts, chats or groups. End-to-end encryption is not yet implemented; do not treat this foundation build as production-ready for sensitive conversations.
+
+
+## Official Meta WhatsApp Cloud API integration
+
+The backend now has an initial official Cloud API inbox integration:
+- Configure `META_ACCESS_TOKEN`, `META_PHONE_NUMBER_ID`, `META_VERIFY_TOKEN`, and `META_APP_SECRET` in Railway.
+- Set the Meta webhook callback URL to `https://YOUR-RAILWAY-DOMAIN/webhooks/whatsapp`.
+- Subscribe the WhatsApp Business Account webhook to the `messages` field.
+- Apply `backend/sql/schema.sql` to Neon.
+- Send text via authenticated `POST /api/v1/whatsapp/messages` with `{"to":"15551234567","text":"Hello"}`.
+- List conversations via authenticated `GET /api/v1/whatsapp/conversations`.
+
+Webhook POST requests are checked using Meta's `X-Hub-Signature-256`. Keep all Meta secrets on Railway, never in the Android APK. This is a WhatsApp Business inbox, not a consumer WhatsApp clone. Meta controls recipient eligibility, messaging windows, approved templates, pricing and feature access. The first send endpoint supports text only; media, templates, interactive messages, pagination and operator roles remain future work.
