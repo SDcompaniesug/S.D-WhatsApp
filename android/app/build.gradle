@@ -1,0 +1,26 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.sdcompanies.whatsapp'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.sdcompanies.whatsapp'
+        minSdk 23
+        targetSdk 34
+        versionCode 1
+        versionName '0.1.0'
+        buildConfigField 'String', 'API_BASE_URL', '"https://YOUR-RAILWAY-DOMAIN.up.railway.app"'
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
