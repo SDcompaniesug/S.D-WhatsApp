@@ -9,6 +9,7 @@ const jwt = require("jsonwebtoken");
 const twilio = require("twilio");
 const { Server } = require("socket.io");
 const db = require("./db");
+const whatsappCloud = require("./whatsapp-cloud");
 
 const app = express();
 const server = http.createServer(app);
@@ -32,7 +33,7 @@ app.use(cors({
     return callback(new Error("Origin not allowed"));
   }
 }));
-app.use(express.json({ limit: "32kb" }));
+app.use(express.json({ limit: "32kb", verify: (req, res, buffer) => { req.rawBody = Buffer.from(buffer); } }));
 
 const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -74,6 +75,10 @@ function authenticateToken(token) {
     audience: "sd-whatsapp-android"
   });
 }
+
+app.use("/api/v1/whatsapp", whatsappCloud.router({ db, authenticateToken }));
+app.get("/webhooks/whatsapp", whatsappCloud.verifyWebhook);
+app.post("/webhooks/whatsapp", whatsappCloud.receiveWebhook);
 
 app.get("/health", async (req, res) => {
   try {
